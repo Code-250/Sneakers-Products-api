@@ -1,5 +1,6 @@
 import { v2 } from 'cloudinary';
 import { CLOUDINARY } from './constants';
+import 'dotenv/config';
 
 export const CloudinaryProvider = {
   provide: CLOUDINARY,

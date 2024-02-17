@@ -1,36 +1,31 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
 
 export class ProductsDto {
   @IsNotEmpty()
-  @IsString()
-  @Length(10, 100)
+  @ApiProperty()
   title: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @Length(0, 500)
+  @ApiProperty({ type: 'string', format: 'binary', required: true })
   imageUrl: string;
 
   @IsNotEmpty()
-  @IsString()
-  @Length(0, 100)
+  @ApiProperty()
   shoeType: string;
 
   @IsNotEmpty()
-  @IsString()
-  @Length(0, 10)
+  @ApiProperty()
   price: string;
 
   @IsNotEmpty()
-  @IsString()
-  @Length(0, 10)
+  @ApiProperty()
   discountRate: string;
 
   @IsNotEmpty()
-  @IsString()
-  @Length(0, 200)
+  @ApiProperty()
   description: string;
 
-  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
   status: string;
 }

@@ -1,22 +1,67 @@
 import { Injectable } from '@nestjs/common';
 import { UploadApiErrorResponse, UploadApiResponse, v2 } from 'cloudinary';
+// const toStream = require('buffer-to-stream');
+
 @Injectable()
 export class CloudinaryService {
-  constructor() {
-    v2.config({
-      cloud_name: 'dectjcbvr',
-      api_key: '947787528557937',
-      api_secret: 'M4uKr8ZFE4p466r9tuQ8K6urkkc',
+  async uploadFile(
+    file: Express.Multer.File,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    console.log(file);
+
+    return new Promise((resolve, reject) => {
+      v2.uploader
+        .upload_stream(
+          {
+            resource_type: 'auto',
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        )
+        .end(file.buffer);
     });
   }
-  async uploadImage(
-    file: string,
+
+  async uploadFiles(files: Express.Multer.File[]) {
+    const urls = await Promise.all(
+      files.map(async (file): Promise<string> => {
+        const { secure_url } = await this.uploadFile(file);
+        return secure_url;
+      }),
+    );
+    return urls;
+  }
+
+  async uploadFileFromUrl(
+    url: string,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
-    return new Promise((resolve, reject) => {
-      v2.uploader.upload(file, { folder: 'Sneakers' }, (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      });
-    });
+    return v2.uploader.upload(url);
+  }
+
+  async uploadFilesFromUrl(urls: string[]) {
+    return Promise.all(
+      urls.map(async (url: string): Promise<string> => {
+        const { secure_url } = await this.uploadFileFromUrl(url);
+        return secure_url;
+      }),
+    );
+  }
+
+  async uploadFileFromBase64(
+    data: string,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    return v2.uploader.upload(data);
+  }
+
+  async uploadManyBase64(files: string[]) {
+    const urls = await Promise.all(
+      files.map(async (file): Promise<string> => {
+        const { secure_url } = await this.uploadFileFromBase64(file);
+        return secure_url;
+      }),
+    );
+    return urls;
   }
 }

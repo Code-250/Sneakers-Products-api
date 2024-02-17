@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductEntity } from 'src/products/entities/product.entities';
@@ -23,7 +28,7 @@ export class ProductsService {
     return this.productRepository.delete(id);
   }
 
-  async update(id: number, productsDto: ProductsDto) {
+  async update(id: number, productsDto: ProductsDto, file: string) {
     const product: Products = await this.productRepository.findOneBy({ id });
     if (!product) {
       throw new HttpException(
@@ -31,10 +36,25 @@ export class ProductsService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return this.productRepository.update(id, productsDto);
+    const updatedData = {
+      title: productsDto.title || product.title,
+      shoeType: productsDto.shoeType || product.shoeType,
+      discountRate: productsDto.discountRate || product.discountRate,
+      description: productsDto.description || product.description,
+      imageUrl: file || product.imageUrl,
+      status: productsDto.status || product.status,
+      price: productsDto.price || product.price,
+    };
+    return this.productRepository.update(id, updatedData);
   }
 
-  async create(productDto: ProductsDto, uploadedImage: any) {
+  async create(productDto: ProductsDto, uploadedImage: string) {
+    const existProduct = await this.productRepository.findOne({
+      where: { title: productDto.title },
+    });
+    if (existProduct) {
+      throw new BadRequestException('You have already created this Product');
+    }
     const newProduct = this.productRepository.create({
       ...productDto,
       imageUrl: uploadedImage,
